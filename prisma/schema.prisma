@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  googleId      String?  @unique
+  avatarUrl     String?
+  name          String
+  createdAt     DateTime @default(now())
+
+  plan          String   @default("free") // free | monthly | yearly
+  planRenewsAt  DateTime?
+  freeSecondsLeft Int    @default(600) // 10 minute free session
+  creditSeconds Int      @default(0)   // purchased/subscription seconds available
+
+  resumes          Resume[]
+  documents        Document[]
+  sessions         CallSession[]
+  transactions     CreditTransaction[]
+  practiceHistory  PracticeSession[]
+  stories          UserStory[]
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename  String
+  content   String   // extracted plain text
+  createdAt DateTime @default(now())
+
+  sessions  CallSession[]
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename  String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model CallSession {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String   @default("interview") // interview | call
+  company       String?
+  role          String?
+  extraContext  String?
+  resumeId      String?
+  resume        Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  status        String   @default("active") // active | ended
+  isFree        Boolean  @default(false)
+  secondsUsed   Int      @default(0)
+  startedAt     DateTime @default(now())
+  endedAt       DateTime?
+
+  messages      Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   CallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String   // question | answer
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model CreditTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // purchase | usage | grant
+  seconds   Int
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model PracticeSession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     String
+  company      String?
+  questionText String
+  userAnswer   String?
+  aiFeedback   String?
+  aiScore      Int?
+  duration     Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+model UserStory {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  situation  String
+  task       String
+  action     String
+  result     String
+  tags       String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
