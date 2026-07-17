@@ -14,6 +14,8 @@ import {
   Copy,
   Check,
   ArrowRight,
+  Globe,
+  Keyboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -58,6 +60,23 @@ const starLabels: Record<string, string> = {
   Action: "bg-brand/10 text-brand-2 border-brand/20",
   Result: "bg-green-500/10 text-green-600 border-green-500/20",
 };
+
+const LANGUAGES = [
+  { code: "en-US", label: "English (US)" },
+  { code: "en-GB", label: "English (UK)" },
+  { code: "hi-IN", label: "Hindi" },
+  { code: "es-ES", label: "Spanish" },
+  { code: "fr-FR", label: "French" },
+  { code: "de-DE", label: "German" },
+  { code: "zh-CN", label: "Chinese (Mandarin)" },
+  { code: "ja-JP", label: "Japanese" },
+  { code: "ko-KR", label: "Korean" },
+  { code: "pt-BR", label: "Portuguese (BR)" },
+  { code: "ar-SA", label: "Arabic" },
+  { code: "it-IT", label: "Italian" },
+  { code: "nl-NL", label: "Dutch" },
+  { code: "ru-RU", label: "Russian" },
+];
 
 function renderAnswer(content: string, format: AnswerFormat) {
   if (format !== "star") {
@@ -157,24 +176,25 @@ export function CallSessionRoom({
   const [showSettings, setShowSettings] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sessionMode, setSessionMode] = useState<SessionMode>("general");
+  const [speechLang, setSpeechLang] = useState("en-US");
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const elapsedRef = useRef(initialSecondsUsed);
   const endingRef = useRef(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const answersEndRef = useRef<HTMLDivElement>(null);
+  const listeningRef = useRef(false);
 
   const timeLeft = isUnlimited ? Infinity : allowedSeconds - elapsed;
   const mins = Math.floor(Math.max(0, elapsed) / 60);
   const secs = Math.max(0, elapsed) % 60;
   const minsLeft = Math.max(0, Math.floor(timeLeft / 60));
 
-  // Auto-scroll transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, interim]);
 
-  // Auto-scroll answers to bottom on streaming
   useEffect(() => {
     answersEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [streamingAnswer, messages]);
@@ -185,6 +205,7 @@ export function CallSessionRoom({
       endingRef.current = true;
       recognitionRef.current?.stop?.();
       setListening(false);
+      listeningRef.current = false;
       setEnded(true);
       if (reason) setNotice(reason);
 
@@ -279,7 +300,7 @@ export function CallSessionRoom({
     [sessionId, asking, answerFormat, answerTone, answerLength, sessionMode]
   );
 
-  // Speech recognition
+  // Speech recognition — recreate when language changes
   useEffect(() => {
     const SpeechRecognitionImpl = getSpeechRecognitionCtor();
     if (!SpeechRecognitionImpl) return;
@@ -287,7 +308,7 @@ export function CallSessionRoom({
     const recognition = new SpeechRecognitionImpl();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.lang = speechLang;
 
     recognition.onresult = (event) => {
       let interimText = "";
@@ -305,15 +326,20 @@ export function CallSessionRoom({
 
     recognition.onerror = () => setListening(false);
     recognition.onend = () => {
-      setListening((wasListening) => {
-        if (wasListening && !endingRef.current) {
-          try { recognition.start(); return true; } catch { return false; }
-        }
-        return false;
-      });
+      if (listeningRef.current && !endingRef.current) {
+        try { recognition.start(); } catch { setListening(false); listeningRef.current = false; }
+      } else {
+        setListening(false);
+        listeningRef.current = false;
+      }
     };
 
     recognitionRef.current = recognition;
+
+    if (listeningRef.current) {
+      try { recognition.start(); } catch { /* already running */ }
+    }
+
     return () => {
       recognition.onresult = null;
       recognition.onerror = null;
@@ -321,36 +347,86 @@ export function CallSessionRoom({
       recognition.stop?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Keyboard shortcut: Cmd/Ctrl+Enter to send
-  useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-        if (manualInput.trim()) {
-          askQuestion(manualInput);
-          setManualInput("");
-        }
-      }
-    }
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [manualInput, askQuestion]);
+  }, [speechLang]);
 
   function toggleListening() {
     if (!recognitionRef.current) return;
     if (listening) {
       recognitionRef.current.stop();
       setListening(false);
+      listeningRef.current = false;
     } else {
       try {
         recognitionRef.current.start();
         setListening(true);
+        listeningRef.current = true;
       } catch {
         // already started
       }
     }
   }
+
+  function copyLastAnswer() {
+    const answers = messages.filter((m) => m.role === "answer");
+    const last = answers[answers.length - 1];
+    if (!last) return;
+    navigator.clipboard.writeText(last.content);
+    setCopiedId(last.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      const meta = e.metaKey || e.ctrlKey;
+
+      // Cmd/Ctrl+Enter → send typed question
+      if (meta && e.key === "Enter") {
+        if (manualInput.trim()) {
+          askQuestion(manualInput);
+          setManualInput("");
+        }
+        return;
+      }
+
+      // Cmd/Ctrl+M → toggle mic
+      if (meta && e.key === "m") {
+        e.preventDefault();
+        if (!ended) toggleListening();
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+C → copy last answer
+      if (meta && e.shiftKey && e.key === "C") {
+        e.preventDefault();
+        copyLastAnswer();
+        return;
+      }
+
+      // Cmd/Ctrl+E → end session
+      if (meta && e.key === "e") {
+        e.preventDefault();
+        if (!ended) endSession();
+        return;
+      }
+
+      // Escape → close panels
+      if (e.key === "Escape") {
+        setShowSettings(false);
+        setShowShortcuts(false);
+        return;
+      }
+
+      // ? → toggle shortcuts help
+      if (e.key === "/" && meta) {
+        e.preventDefault();
+        setShowShortcuts((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manualInput, asking, ended, listening]);
 
   function onManualSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -413,6 +489,31 @@ export function CallSessionRoom({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Language selector */}
+          {!ended && speechSupported && (
+            <label className="flex items-center gap-1.5 text-xs text-muted-2">
+              <Globe className="size-3.5" />
+              <select
+                value={speechLang}
+                onChange={(e) => setSpeechLang(e.target.value)}
+                className="rounded-lg border border-border-soft bg-surface-2 px-2 py-1.5 text-xs text-foreground outline-none focus:border-brand/50"
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {/* Shortcuts help */}
+          <button
+            onClick={() => setShowShortcuts((v) => !v)}
+            className="rounded-lg p-1.5 text-muted-2 hover:bg-surface-2 hover:text-foreground"
+            title="Keyboard shortcuts (⌘/)"
+          >
+            <Keyboard className="size-4" />
+          </button>
+
           {ended && (
             <Link
               href={`/dashboard/sessions/${sessionId}/summary`}
@@ -432,6 +533,31 @@ export function CallSessionRoom({
           )}
         </div>
       </header>
+
+      {/* Shortcuts overlay */}
+      {showShortcuts && (
+        <div className="mx-6 mt-3 shrink-0 rounded-lg border border-border-soft bg-surface p-4 animate-fade-up">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-2">Keyboard shortcuts</p>
+            <button onClick={() => setShowShortcuts(false)} className="text-xs text-muted-2 hover:text-foreground">✕</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {[
+              ["⌘/Ctrl + Enter", "Send typed question"],
+              ["⌘/Ctrl + M", "Toggle microphone"],
+              ["⌘/Ctrl + Shift + C", "Copy last answer"],
+              ["⌘/Ctrl + E", "End session"],
+              ["⌘/Ctrl + /", "Toggle this panel"],
+              ["Escape", "Close panels"],
+            ].map(([key, desc]) => (
+              <div key={key} className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2">
+                <span className="text-muted-2">{desc}</span>
+                <kbd className="ml-2 rounded bg-surface-3 px-2 py-0.5 font-mono text-[10px] text-foreground">{key}</kbd>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {notice && (
         <div className="mx-6 mt-3 flex shrink-0 items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-4 py-2.5 text-sm text-amber-700 animate-fade-up">
@@ -486,7 +612,7 @@ export function CallSessionRoom({
                 <div className="flex h-32 flex-col items-center justify-center text-center">
                   <p className="text-sm text-muted-2">
                     {speechSupported
-                      ? "Click the mic to start listening, or type a question below."
+                      ? "Click the mic or press ⌘M to start listening."
                       : "Your browser doesn't support live transcription — type questions below."}
                   </p>
                 </div>
@@ -502,7 +628,7 @@ export function CallSessionRoom({
                 <button
                   onClick={toggleListening}
                   disabled={ended}
-                  title={listening ? "Stop listening" : "Start listening"}
+                  title={listening ? "Stop listening (⌘M)" : "Start listening (⌘M)"}
                   className={`flex size-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
                     listening
                       ? "bg-danger text-white shadow-[0_0_12px_rgba(255,107,107,0.4)]"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Settings, Save, Loader2, User, Bell, Sliders, Trash2 } from "lucide-react"
+import { Settings, Save, Loader2, User, Bell, Sliders, Trash2, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 type UserSettings = {
@@ -12,6 +12,7 @@ type UserSettings = {
   defaultLength: string
   autoAnswer: boolean
   emailNotifications: boolean
+  autoDeleteAfterDays: number
   plan: string
 }
 
@@ -47,6 +48,7 @@ export default function SettingsPage() {
           defaultLength: settings.defaultLength,
           autoAnswer: settings.autoAnswer,
           emailNotifications: settings.emailNotifications,
+          autoDeleteAfterDays: settings.autoDeleteAfterDays,
         }),
       })
       if (!res.ok) throw new Error()
@@ -190,6 +192,29 @@ export default function SettingsPage() {
           >
             <span className={`inline-block size-5 transform rounded-full bg-white shadow-sm transition-transform ${settings.emailNotifications ? "translate-x-5" : "translate-x-0.5"} mt-0.5`} />
           </button>
+        </div>
+      </section>
+
+      {/* Privacy & Data */}
+      <section className="rounded-[var(--radius-lg)] border border-border-soft bg-surface p-6 mb-6">
+        <h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          <Shield className="size-4 text-brand-2" /> Privacy & Data
+        </h2>
+        <div>
+          <label className="block text-xs font-medium text-muted-2 mb-1.5">Auto-delete session transcripts</label>
+          <select
+            value={settings.autoDeleteAfterDays}
+            onChange={e => setSettings({ ...settings, autoDeleteAfterDays: Number(e.target.value) })}
+            className="w-full max-w-xs rounded-lg border border-border-strong bg-surface-2 px-3 py-2 text-sm text-foreground outline-none focus:border-brand"
+          >
+            <option value={0}>Never (keep forever)</option>
+            <option value={7}>After 7 days</option>
+            <option value={30}>After 30 days</option>
+            <option value={90}>After 90 days</option>
+          </select>
+          <p className="mt-1.5 text-xs text-muted-2">
+            Ended session transcripts and messages will be permanently deleted after this period.
+          </p>
         </div>
       </section>
 

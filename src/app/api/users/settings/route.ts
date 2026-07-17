@@ -16,6 +16,7 @@ export async function GET() {
     defaultLength: user.defaultLength,
     autoAnswer: user.autoAnswer,
     emailNotifications: user.emailNotifications,
+    autoDeleteAfterDays: user.autoDeleteAfterDays,
     plan: user.plan,
   });
 }
@@ -27,6 +28,7 @@ const updateSchema = z.object({
   defaultLength: z.enum(["brief", "balanced", "thorough"]).optional(),
   autoAnswer: z.boolean().optional(),
   emailNotifications: z.boolean().optional(),
+  autoDeleteAfterDays: z.number().int().min(0).max(365).optional(),
 });
 
 export async function PUT(req: NextRequest) {
@@ -50,6 +52,7 @@ export async function PUT(req: NextRequest) {
       defaultLength: true,
       autoAnswer: true,
       emailNotifications: true,
+      autoDeleteAfterDays: true,
     },
   });
 

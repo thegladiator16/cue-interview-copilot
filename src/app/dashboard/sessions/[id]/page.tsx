@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { CallSessionRoom } from "@/components/dashboard/CallSessionRoom";
+import { SessionRoomResponsive } from "@/components/dashboard/SessionRoomResponsive";
 
 export default async function SessionRoomPage({
   params,
@@ -24,16 +24,18 @@ export default async function SessionRoomPage({
     ? 4 * 60 * 60
     : session.secondsUsed + user.freeSecondsLeft + user.creditSeconds;
 
+  const messages = session.messages.map((m) => ({
+    id: m.id,
+    role: m.role as "question" | "answer",
+    content: m.content,
+  }));
+
   return (
-    <CallSessionRoom
+    <SessionRoomResponsive
       sessionId={session.id}
       company={session.company}
       role={session.role}
-      initialMessages={session.messages.map((m) => ({
-        id: m.id,
-        role: m.role as "question" | "answer",
-        content: m.content,
-      }))}
+      initialMessages={messages}
       initialSecondsUsed={session.secondsUsed}
       allowedSeconds={allowedSeconds}
       isUnlimited={isUnlimited}
