@@ -24,12 +24,33 @@ model User {
   freeSecondsLeft Int    @default(600) // 10 minute free session
   creditSeconds Int      @default(0)   // purchased/subscription seconds available
 
+  defaultFormat     String   @default("paragraph")
+  defaultTone       String   @default("professional")
+  defaultLength     String   @default("balanced")
+  autoAnswer        Boolean  @default(true)
+  emailNotifications Boolean @default(true)
+  referralCode      String?  @unique
+  referredBy        String?
+
   resumes          Resume[]
   documents        Document[]
   sessions         CallSession[]
   transactions     CreditTransaction[]
   practiceHistory  PracticeSession[]
   stories          UserStory[]
+  referralsGiven   Referral[] @relation("Referrer")
+  referralsReceived Referral[] @relation("Referred")
+}
+
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId  String
+  referred    User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  code        String
+  creditsGiven Int     @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model Resume {

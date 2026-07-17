@@ -14,6 +14,8 @@ import {
   GraduationCap,
   BookOpen,
   BookMarked,
+  Settings,
+  Gift,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
@@ -26,6 +28,8 @@ const nav = [
   { href: "/dashboard/stories", label: "Story Studio", icon: BookMarked },
   { href: "/dashboard/resumes", label: "CVs & Resumes", icon: UserCircle },
   { href: "/dashboard/documents", label: "Documents", icon: FileText },
+  { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({

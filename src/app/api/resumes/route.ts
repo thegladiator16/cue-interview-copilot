@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
   let content: string;
   try {
     content = await extractText(file);
-  } catch {
+  } catch (err) {
+    console.error("extractText failed:", err);
     return NextResponse.json(
       { error: "Couldn't read that file. Supported formats: PDF, DOCX, TXT, MD, RTF, HTML, CSV." },
       { status: 400 }
