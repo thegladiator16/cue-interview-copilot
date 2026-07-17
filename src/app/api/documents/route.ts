@@ -56,10 +56,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const document = await prisma.document.create({
-    data: { userId: user.id, filename: file.name, content },
-    select: { id: true, filename: true, createdAt: true },
-  });
-
-  return NextResponse.json({ document });
+  try {
+    const document = await prisma.document.create({
+      data: { userId: user.id, filename: file.name, content },
+      select: { id: true, filename: true, createdAt: true },
+    });
+    return NextResponse.json({ document });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to save the file. Please try again." },
+      { status: 500 }
+    );
+  }
 }

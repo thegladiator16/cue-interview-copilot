@@ -57,10 +57,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const resume = await prisma.resume.create({
-    data: { userId: user.id, filename: file.name, content },
-    select: { id: true, filename: true, createdAt: true },
-  });
-
-  return NextResponse.json({ resume });
+  try {
+    const resume = await prisma.resume.create({
+      data: { userId: user.id, filename: file.name, content },
+      select: { id: true, filename: true, createdAt: true },
+    });
+    return NextResponse.json({ resume });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to save the file. Please try again." },
+      { status: 500 }
+    );
+  }
 }

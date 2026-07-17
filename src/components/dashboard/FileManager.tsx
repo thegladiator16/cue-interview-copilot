@@ -68,6 +68,7 @@ export function FileManager({
       <input
         ref={inputRef}
         type="file"
+        accept=".pdf,.docx,.doc,.txt,.md,.rtf,.html,.htm,.csv,.json"
         className="hidden"
         onChange={onFileSelected}
       />
@@ -100,7 +101,9 @@ export function FileManager({
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-foreground">{file.filename}</p>
               <p className="text-xs text-muted-2">
-                {new Date(file.createdAt).toLocaleDateString()}
+                {new Date(file.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric", month: "short", day: "numeric"
+                })}
               </p>
             </div>
             <button
