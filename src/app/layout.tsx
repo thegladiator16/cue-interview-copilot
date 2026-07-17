@@ -28,8 +28,19 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#6c5ce7" />
+        <link rel="icon" href="/icon-192.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon-192.svg" />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js")}`,
+          }}
+        />
       </body>
     </html>
   );

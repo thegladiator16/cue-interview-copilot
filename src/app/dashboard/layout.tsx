@@ -15,13 +15,13 @@ export default async function DashboardLayout({
   );
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         user={{ name: user.name, email: user.email }}
         minutesLeft={minutesLeft}
         isFree={user.plan === "free"}
       />
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
     </div>
   );
 }

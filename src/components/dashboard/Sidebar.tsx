@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -16,6 +17,7 @@ import {
   BookMarked,
   Settings,
   Gift,
+  Download,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
@@ -43,6 +45,26 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
+  const promptRef = useRef<Event | null>(null);
+
+  useEffect(() => {
+    function handler(e: Event) {
+      e.preventDefault();
+      promptRef.current = e;
+      setInstallPrompt(e);
+    }
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  async function installApp() {
+    const prompt = promptRef.current as { prompt: () => Promise<void> } | null;
+    if (!prompt) return;
+    await prompt.prompt();
+    setInstallPrompt(null);
+    promptRef.current = null;
+  }
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -58,7 +80,7 @@ export function Sidebar({
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 overflow-y-auto space-y-1 p-3">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -93,6 +115,17 @@ export function Sidebar({
           <Video className="size-4" /> Tutorials
         </Link>
       </div>
+
+      {installPrompt && (
+        <div className="border-t border-border-soft p-3">
+          <button
+            onClick={installApp}
+            className="flex w-full items-center gap-3 rounded-lg bg-brand/10 px-3 py-2.5 text-sm font-medium text-brand-2 transition-colors hover:bg-brand/20"
+          >
+            <Download className="size-4" /> Install Desktop App
+          </button>
+        </div>
+      )}
 
       <div className="border-t border-border-soft p-4">
         <div className="rounded-xl border border-border-soft bg-surface-2 p-4">
