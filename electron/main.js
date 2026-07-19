@@ -38,7 +38,11 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "overlay.html"));
 
   mainWindow.once("ready-to-show", () => {
-    mainWindow.setAlwaysOnTop(true, "floating");
+    if (process.platform === "darwin") {
+      mainWindow.setAlwaysOnTop(true, "floating", 1);
+    } else {
+      mainWindow.setAlwaysOnTop(true, "floating");
+    }
     mainWindow.show();
   });
 
@@ -107,7 +111,15 @@ ipcMain.on("window-maximize", () => {
 });
 ipcMain.on("window-close", () => mainWindow?.hide());
 ipcMain.on("window-toggle-pin", (_, pinned) => {
-  mainWindow?.setAlwaysOnTop(pinned, "floating");
+  if (pinned) {
+    if (process.platform === "darwin") {
+      mainWindow?.setAlwaysOnTop(true, "floating", 1);
+    } else {
+      mainWindow?.setAlwaysOnTop(true, "floating");
+    }
+  } else {
+    mainWindow?.setAlwaysOnTop(false, "normal");
+  }
 });
 ipcMain.on("open-external", (_, url) => {
   shell.openExternal(url);

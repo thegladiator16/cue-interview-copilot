@@ -30,6 +30,7 @@
       flex-direction: column;
       border-radius: 12px;
       border: 1px solid var(--border);
+      -webkit-app-region: no-drag;
     }
 
     /* Title bar */
@@ -40,7 +41,6 @@
       padding: 10px 12px;
       background: var(--bg);
       border-bottom: 1px solid var(--border);
-      -webkit-app-region: drag;
       user-select: none;
       flex-shrink: 0;
     }
@@ -73,7 +73,6 @@
       display: flex;
       align-items: center;
       gap: 2px;
-      -webkit-app-region: no-drag;
     }
     .titlebar-controls button {
       width: 28px;
