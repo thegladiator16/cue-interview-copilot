@@ -1,0 +1,98 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        run: gh release create ${{ github.ref_name }} --title "Cue ${{ github.ref_name }}" --generate-notes --draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app
+        run: npm run electron:build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to GitHub Release
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $src = "dist-electron\Cue Setup $version.exe"
+          $dst = "dist-electron\Cue-Setup-$version.exe"
+          if (Test-Path $src) {
+            Copy-Item $src $dst
+            gh release upload ${{ github.ref_name }} $dst --clobber
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-mac:
+    needs: create-release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app
+        run: npm run electron:build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to GitHub Release
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          DMG="dist-electron/Cue-${VERSION}.dmg"
+          if [ -f "$DMG" ]; then
+            gh release upload ${{ github.ref_name }} "$DMG" --clobber
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish release (remove draft)
+        run: gh release edit ${{ github.ref_name }} --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

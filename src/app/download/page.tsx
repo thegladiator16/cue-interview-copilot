@@ -15,8 +15,9 @@ const platforms = [
     ),
     file: "Cue-Setup-0.1.0.exe",
     label: "Download for Windows",
-    detail: "Windows 10 or later • 64-bit",
+    detail: "Windows 10 or later • 64-bit • ~233 MB",
     recommended: true,
+    available: true,
   },
   {
     os: "macOS",
@@ -26,9 +27,10 @@ const platforms = [
       </svg>
     ),
     file: "Cue-0.1.0.dmg",
-    label: "Download for macOS",
+    label: "Coming Soon",
     detail: "macOS 11 or later • Intel & Apple Silicon",
     recommended: false,
+    available: false,
   },
   {
     os: "Linux",
@@ -38,9 +40,10 @@ const platforms = [
       </svg>
     ),
     file: "Cue-0.1.0.AppImage",
-    label: "Download for Linux",
+    label: "Coming Soon",
     detail: "Ubuntu 20.04+ / Fedora 36+ • 64-bit",
     recommended: false,
+    available: false,
   },
 ];
 
@@ -114,23 +117,29 @@ export default function DownloadPage() {
                   {p.os}
                 </h3>
                 <p className="mt-1 text-xs text-muted">{p.detail}</p>
-                <a
-                  href={`${GITHUB_RELEASES}/download/${p.file}`}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
-                >
-                  <svg
-                    className="size-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                {p.available ? (
+                  <a
+                    href={`${GITHUB_RELEASES}/download/${p.file}`}
+                    className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
                   >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  {p.label}
-                </a>
+                    <svg
+                      className="size-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    {p.label}
+                  </a>
+                ) : (
+                  <span className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-muted/20 px-5 py-3 text-sm font-semibold text-muted cursor-not-allowed">
+                    {p.label}
+                  </span>
+                )}
               </div>
             ))}
           </div>

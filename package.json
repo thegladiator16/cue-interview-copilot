@@ -44,6 +44,11 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "thegladiator16",
+      "repo": "cue-interview-copilot"
     }
   },
   "dependencies": {
