@@ -38,6 +38,7 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "overlay.html"));
 
   mainWindow.once("ready-to-show", () => {
+    mainWindow.setAlwaysOnTop(true, "floating");
     mainWindow.show();
   });
 
@@ -106,7 +107,7 @@ ipcMain.on("window-maximize", () => {
 });
 ipcMain.on("window-close", () => mainWindow?.hide());
 ipcMain.on("window-toggle-pin", (_, pinned) => {
-  mainWindow?.setAlwaysOnTop(pinned);
+  mainWindow?.setAlwaysOnTop(pinned, "floating");
 });
 ipcMain.on("open-external", (_, url) => {
   shell.openExternal(url);
