@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cue</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --brand: #6c5ce7;
+      --brand-light: #a29bfe;
+      --bg: #ffffff;
+      --bg-2: #f8f9fa;
+      --bg-3: #f1f3f5;
+      --border: #e9ecef;
+      --text: #0d0e12;
+      --text-2: #495057;
+      --text-3: #868e96;
+      --danger: #e03131;
+      --success: #2f9e44;
+      --radius: 12px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* Title bar */
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      -webkit-app-region: drag;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .titlebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .titlebar-brand svg {
+      width: 28px;
+      height: 28px;
+    }
+    .titlebar-brand span {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .titlebar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--bg-3);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+    .titlebar-controls {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      -webkit-app-region: no-drag;
+    }
+    .titlebar-controls button {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-3);
+      transition: all 0.15s;
+    }
+    .titlebar-controls button:hover {
+      background: var(--bg-3);
+      color: var(--text);
+    }
+    .titlebar-controls button.pin-active {
+      color: var(--brand);
+    }
+    .titlebar-controls button.close:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .tab:hover { color: var(--text-2); }
+    .tab.active {
+      color: var(--text);
+      border-bottom-color: var(--brand);
+    }
+
+    /* Content area */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    /* Form */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .type-toggle {
+      display: flex;
+      background: var(--bg-3);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .type-btn:hover { color: var(--text-2); }
+    .type-btn.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .field label svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-3);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    .field input::placeholder, .field textarea::placeholder {
+      color: var(--text-3);
+    }
+    .url-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--brand);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-weight: 500;
+      padding: 0;
+      margin-top: -2px;
+      float: right;
+    }
+    .url-btn:hover { text-decoration: underline; }
+
+    /* Context buttons */
+    .context-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .ctx-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ctx-btn:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: rgba(108,92,231,0.04);
+    }
+
+    /* Output settings */
+    .settings-row {
+      display: flex;
+      gap: 8px;
+    }
+    .settings-row .field { flex: 1; }
+
+    /* Behavior */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .toggle-row span {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-3);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 2px;
+      top: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .toggle input:checked + .toggle-slider {
+      background: var(--brand);
+    }
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(16px);
+    }
+
+    /* Create button */
+    .create-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--text);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 8px;
+    }
+    .create-btn:hover {
+      background: #1a1b1e;
+    }
+    .create-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Past Sessions */
+    .sessions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .session-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .session-card:hover {
+      border-color: var(--brand-light);
+      background: rgba(108,92,231,0.03);
+    }
+    .session-info h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .session-meta {
+      font-size: 11px;
+      color: var(--text-3);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .badge-active { background: #d3f9d8; color: var(--success); }
+    .badge-ended { background: var(--bg-3); color: var(--text-3); }
+    .badge-free { background: #fff3bf; color: #e67700; }
+
+    .view-all {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      transition: color 0.15s;
+    }
+    .view-all:hover { color: var(--brand); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-3);
+    }
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+    .empty-state p { font-size: 13px; }
+
+    .hidden { display: none; }
+
+    /* Scrollbar */
+    .content::-webkit-scrollbar { width: 4px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .content::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+    .file-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: var(--bg-3);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-2);
+      margin: 2px;
+    }
+    .file-tag button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .file-tag button:hover { color: var(--danger); }
+    .files-area { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Title Bar -->
+  <div class="titlebar">
+    <div class="titlebar-brand">
+      <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <rect width="512" height="512" rx="102" fill="#6c5ce7"/>
+        <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="system-ui" font-weight="700" font-size="230" fill="white">C</text>
+      </svg>
+      <span>Cue</span>
+    </div>
+    <div class="titlebar-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Free Plan
+    </div>
+    <div class="titlebar-controls">
+      <button class="pin pin-active" id="pinBtn" title="Always on top">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L12 22M12 2l-4 4M12 2l4 4"/></svg>
+      </button>
+      <button id="moveBtn" title="Move (drag)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l4 4h-8l4-4zM2 12l4-4v8l-4-4zM22 12l-4 4v-8l4 4zM12 22l-4-4h8l-4 4z"/></svg>
+      </button>
+      <button id="minBtn" title="Minimize">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="close" id="closeBtn" title="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="create">Create</button>
+    <button class="tab" data-tab="sessions">Past Sessions</button>
+  </div>
+
+  <!-- Create Tab -->
+  <div class="content" id="createTab">
+    <div class="section-label">Session Type</div>
+    <div class="type-toggle">
+      <button class="type-btn active" data-type="interview">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/></svg>
+        Interview
+      </button>
+      <button class="type-btn" data-type="call">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Regular Call
+      </button>
+    </div>
+
+    <!-- Interview fields -->
+    <div id="interviewFields">
+      <div class="field" style="margin-top:14px">
+        <label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a4 4 0 0 0-8 0v2"/></svg>
+          Company
+          <button class="url-btn" id="urlFillBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Fill from Job URL
+          </button>
+        </label>
+        <input type="text" id="company" placeholder="Microsoft...">
+      </div>
+      <div class="field">
+        <label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Job Description
+        </label>
+        <textarea id="jobDesc" placeholder="Software Engineer versed in Python, SQL, and AWS..."></textarea>
+      </div>
+    </div>
+
+    <!-- Call fields -->
+    <div id="callFields" class="hidden">
+      <div class="field" style="margin-top:14px">
+        <label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Call Title (Optional)
+        </label>
+        <input type="text" id="callTitle" placeholder="Feature request discussion...">
+      </div>
+      <div class="field">
+        <label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+          Description (Optional)
+        </label>
+        <textarea id="callDesc" placeholder="Discussing Q4 targets and partnership opportunities..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">Context</div>
+    <div id="filesArea" class="files-area"></div>
+    <div class="context-row">
+      <button class="ctx-btn" id="addResumeBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Resume
+      </button>
+      <button class="ctx-btn" id="addDocBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Documents
+      </button>
+      <button class="ctx-btn" id="addContextBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Extra Context
+      </button>
+    </div>
+
+    <div id="extraContextArea" class="hidden">
+      <div class="field">
+        <textarea id="extraContext" placeholder="Paste any additional context here..." rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">Output Settings</div>
+    <div class="settings-row">
+      <div class="field">
+        <select id="modelSelect">
+          <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
+        </select>
+      </div>
+      <div class="field">
+        <select id="langSelect">
+          <option value="en-US">English</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="es-ES">Spanish</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="ja-JP">Japanese</option>
+          <option value="ko-KR">Korean</option>
+          <option value="zh-CN">Chinese</option>
+          <option value="pt-BR">Portuguese</option>
+          <option value="ar-SA">Arabic</option>
+          <option value="ru-RU">Russian</option>
+          <option value="it-IT">Italian</option>
+          <option value="nl-NL">Dutch</option>
+          <option value="ta-IN">Tamil</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Behavior</div>
+    <div class="toggle-row">
+      <span>Auto Answer (Beta)</span>
+      <label class="toggle">
+        <input type="checkbox" id="autoAnswer">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <span>Save Transcript</span>
+      <label class="toggle">
+        <input type="checkbox" id="saveTranscript" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <button class="create-btn" id="createBtn">Create Session</button>
+  </div>
+
+  <!-- Past Sessions Tab -->
+  <div class="content hidden" id="sessionsTab">
+    <div class="sessions-list" id="sessionsList">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
+        <p>No sessions yet.<br>Create one to get started.</p>
+      </div>
+    </div>
+    <button class="view-all" id="viewAllBtn">View All &#x2197;</button>
+  </div>
+
+  <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.doc,.txt,.md">
+
+  <script>
+    const API = "https://cue-interview-copilot.vercel.app";
+    let pinned = true;
+    let sessionType = "interview";
+    let attachedFiles = [];
+    let fileTarget = "resume";
+
+    // Tabs
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        const target = tab.dataset.tab;
+        document.getElementById("createTab").classList.toggle("hidden", target !== "create");
+        document.getElementById("sessionsTab").classList.toggle("hidden", target !== "sessions");
+        if (target === "sessions") loadSessions();
+      });
+    });
+
+    // Session type toggle
+    document.querySelectorAll(".type-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        sessionType = btn.dataset.type;
+        document.getElementById("interviewFields").classList.toggle("hidden", sessionType !== "interview");
+        document.getElementById("callFields").classList.toggle("hidden", sessionType !== "call");
+      });
+    });
+
+    // Window controls
+    document.getElementById("pinBtn").addEventListener("click", () => {
+      pinned = !pinned;
+      document.getElementById("pinBtn").classList.toggle("pin-active", pinned);
+      window.cue.togglePin(pinned);
+    });
+    document.getElementById("minBtn").addEventListener("click", () => window.cue.minimize());
+    document.getElementById("closeBtn").addEventListener("click", () => window.cue.close());
+
+    // Context buttons
+    document.getElementById("addResumeBtn").addEventListener("click", () => {
+      fileTarget = "resume";
+      document.getElementById("fileInput").click();
+    });
+    document.getElementById("addDocBtn").addEventListener("click", () => {
+      fileTarget = "document";
+      document.getElementById("fileInput").click();
+    });
+    document.getElementById("addContextBtn").addEventListener("click", () => {
+      document.getElementById("extraContextArea").classList.toggle("hidden");
+      document.getElementById("extraContext").focus();
+    });
+
+    // File handling
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      attachedFiles.push({ name: file.name, type: fileTarget, file });
+      renderFiles();
+      e.target.value = "";
+    });
+
+    function renderFiles() {
+      const area = document.getElementById("filesArea");
+      area.innerHTML = attachedFiles.map((f, i) => `
+        <span class="file-tag">
+          ${f.type === "resume" ? "📄" : "📎"} ${f.name}
+          <button onclick="removeFile(${i})">&times;</button>
+        </span>
+      `).join("");
+    }
+
+    window.removeFile = (i) => {
+      attachedFiles.splice(i, 1);
+      renderFiles();
+    };
+
+    // Create session
+    document.getElementById("createBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("createBtn");
+      btn.disabled = true;
+      btn.textContent = "Creating...";
+
+      try {
+        const body = {
+          type: sessionType,
+          language: document.getElementById("langSelect").value,
+          autoAnswer: document.getElementById("autoAnswer").checked,
+          saveTranscript: document.getElementById("saveTranscript").checked,
+        };
+
+        if (sessionType === "interview") {
+          body.company = document.getElementById("company").value;
+          body.jobDescription = document.getElementById("jobDesc").value;
+          body.extraContext = document.getElementById("extraContext")?.value || "";
+        } else {
+          body.title = document.getElementById("callTitle").value;
+          body.description = document.getElementById("callDesc").value;
+          body.extraContext = document.getElementById("extraContext")?.value || "";
+        }
+
+        const res = await fetch(`${API}/api/sessions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          window.cue.openExternal(`${API}/dashboard/sessions/${data.id}`);
+          btn.textContent = "Session Created!";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = "Create Session";
+          }, 2000);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || "Failed to create session. Please log in first.");
+          btn.disabled = false;
+          btn.textContent = "Create Session";
+        }
+      } catch (e) {
+        alert("Connection error. Please check your internet.");
+        btn.disabled = false;
+        btn.textContent = "Create Session";
+      }
+    });
+
+    // Load past sessions
+    async function loadSessions() {
+      try {
+        const res = await fetch(`${API}/api/sessions`, { credentials: "include" });
+        if (!res.ok) throw new Error();
+        const sessions = await res.json();
+        const list = document.getElementById("sessionsList");
+
+        if (!sessions.length) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
+              <p>No sessions yet.<br>Create one to get started.</p>
+            </div>`;
+          return;
+        }
+
+        list.innerHTML = sessions.slice(0, 5).map(s => {
+          const date = new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+          const status = s.endedAt ? "ended" : "active";
+          const label = s.company || s.title || "Session";
+          return `
+            <div class="session-card" onclick="window.cue.openExternal('${API}/dashboard/sessions/${s.id}')">
+              <div class="session-info">
+                <h4>${label}</h4>
+                <div class="session-meta">
+                  <span class="badge badge-${status}">${status === "active" ? "Active" : "Ended"}</span>
+                  <span>${date}</span>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+      } catch {
+        document.getElementById("sessionsList").innerHTML = `
+          <div class="empty-state">
+            <p>Please log in at the website first.</p>
+          </div>`;
+      }
+    }
+
+    // View all → open dashboard
+    document.getElementById("viewAllBtn").addEventListener("click", () => {
+      window.cue.openExternal(`${API}/dashboard/sessions`);
+    });
+
+    // URL fill button
+    document.getElementById("urlFillBtn").addEventListener("click", () => {
+      const url = prompt("Paste the job posting URL:");
+      if (url) {
+        document.getElementById("company").value = "Loading...";
+        document.getElementById("company").value = new URL(url).hostname.replace("www.", "").split(".")[0];
+      }
+    });
+
+    // Navigation from tray
+    if (window.cue?.onNavigate) {
+      window.cue.onNavigate((page) => {
+        if (page === "create") {
+          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+          document.querySelector('[data-tab="create"]').classList.add("active");
+          document.getElementById("createTab").classList.remove("hidden");
+          document.getElementById("sessionsTab").classList.add("hidden");
+        }
+      });
+    }
+  </script>
+</body>
+</html>

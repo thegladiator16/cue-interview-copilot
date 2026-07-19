@@ -11,6 +11,7 @@ const links = [
   { href: "/#privacy", label: "Privacy" },
   { href: "/#reviews", label: "Reviews" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/download", label: "Download" },
 ];
 
 export function Navbar() {
