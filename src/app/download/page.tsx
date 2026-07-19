@@ -51,7 +51,7 @@ const steps = [
   {
     num: "1",
     title: "Download & Install",
-    desc: "Download the installer for your platform. Run it — Cue installs in seconds with no complex setup.",
+    desc: "Download the installer for your platform. On Windows, click \"More info\" → \"Run anyway\" if SmartScreen appears. Cue installs in seconds.",
   },
   {
     num: "2",
@@ -154,6 +154,36 @@ export default function DownloadPage() {
             </Link>{" "}
             — no download needed.
           </p>
+
+          {/* SmartScreen notice */}
+          <div className="mx-auto mt-10 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/[0.04] px-6 py-5">
+            <div className="flex gap-3">
+              <svg
+                className="mt-0.5 size-5 shrink-0 text-amber-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Windows SmartScreen Notice
+                </h4>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
+                  Windows may show a &ldquo;Windows protected your PC&rdquo;
+                  warning because the app is new and not yet widely installed.
+                  This is normal for indie software.
+                  Click <strong className="text-foreground">More info</strong>{" "}
+                  &rarr; <strong className="text-foreground">Run anyway</strong>{" "}
+                  to proceed with the installation.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* How it works */}
