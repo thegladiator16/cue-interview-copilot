@@ -19,10 +19,8 @@ export default async function MobileSessionPage({
 
   if (!session || session.userId !== user.id) notFound()
 
-  const isUnlimited = user.plan === "monthly" || user.plan === "yearly"
-  const allowedSeconds = isUnlimited
-    ? 4 * 60 * 60
-    : session.secondsUsed + user.freeSecondsLeft + user.creditSeconds
+  const isUnlimited = true
+  const allowedSeconds = 4 * 60 * 60
 
   return (
     <MobileSessionView

@@ -57,43 +57,14 @@ export async function PATCH(
   // since the last save should be newly deducted from the user's balance.
   const deltaSeconds = Math.max(0, secondsUsed - session.secondsUsed);
 
-  const isUnlimited = user.plan === "monthly" || user.plan === "yearly";
-  let remainingFree = user.freeSecondsLeft;
-  let remainingCredit = user.creditSeconds;
-
-  if (!isUnlimited) {
-    const fromFree = Math.min(remainingFree, deltaSeconds);
-    remainingFree -= fromFree;
-    const fromCredit = Math.min(remainingCredit, deltaSeconds - fromFree);
-    remainingCredit -= fromCredit;
-  }
-
-  const [updatedSession] = await prisma.$transaction([
-    prisma.callSession.update({
-      where: { id },
-      data: {
-        secondsUsed,
-        status: ending ? "ended" : session.status,
-        endedAt: ending ? new Date() : session.endedAt,
-      },
-    }),
-    ...(isUnlimited || deltaSeconds === 0
-      ? []
-      : [
-          prisma.user.update({
-            where: { id: user.id },
-            data: { freeSecondsLeft: remainingFree, creditSeconds: remainingCredit },
-          }),
-          prisma.creditTransaction.create({
-            data: {
-              userId: user.id,
-              type: "usage",
-              seconds: -deltaSeconds,
-              note: `Call session ${id}`,
-            },
-          }),
-        ]),
-  ]);
+  const updatedSession = await prisma.callSession.update({
+    where: { id },
+    data: {
+      secondsUsed,
+      status: ending ? "ended" : session.status,
+      endedAt: ending ? new Date() : session.endedAt,
+    },
+  });
 
   return NextResponse.json({ session: updatedSession });
 }

@@ -135,17 +135,7 @@ export function Sidebar({
               {isFree ? "Free Plan" : "Your Plan"}
             </p>
           </div>
-          <p className="text-xs text-muted-2">
-            {minutesLeft > 0
-              ? `${minutesLeft} min available`
-              : "No minutes left"}
-          </p>
-          <Link
-            href="/dashboard/billing"
-            className="mt-3 block w-full rounded-lg bg-accent px-3 py-2 text-center text-xs font-semibold text-accent-foreground"
-          >
-            {isFree ? "Upgrade" : "Buy more minutes"}
-          </Link>
+          <p className="text-xs text-muted-2">Unlimited usage</p>
         </div>
       </div>
 

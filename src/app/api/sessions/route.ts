@@ -36,15 +36,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const isUnlimited = user.plan === "monthly" || user.plan === "yearly";
-  const secondsAvailable = user.freeSecondsLeft + user.creditSeconds;
-
-  if (!isUnlimited && secondsAvailable <= 0) {
-    return NextResponse.json(
-      { error: "You're out of minutes. Buy credits or subscribe to keep going." },
-      { status: 402 }
-    );
-  }
+  const isUnlimited = true;
 
   const { type, company, role, resumeId, extraContext } = parsed.data;
 

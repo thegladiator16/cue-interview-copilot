@@ -20,7 +20,7 @@ export default async function DashboardHome() {
     take: 3,
   });
 
-  const minutesLeft = Math.floor((user.freeSecondsLeft + user.creditSeconds) / 60);
+  const minutesLeft = "∞";
 
   const steps = [
     { label: "Upload your resume", done: resumeCount > 0, href: "/dashboard/resumes" },
@@ -36,7 +36,7 @@ export default async function DashboardHome() {
       <p className="mt-1 text-muted">Here&apos;s where things stand today.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
-        <StatCard icon={Clock} label="Minutes available" value={String(minutesLeft)} />
+        <StatCard icon={Clock} label="Minutes available" value={minutesLeft} />
         <StatCard icon={PlayCircle} label="Sessions run" value={String(sessionCount)} />
         <StatCard icon={UserCircle} label="Resumes on file" value={String(resumeCount)} />
         <StatCard icon={GraduationCap} label="Practice sessions" value={String(practiceCount)} />
